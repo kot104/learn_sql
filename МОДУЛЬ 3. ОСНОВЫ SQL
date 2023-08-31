@@ -1,0 +1,125 @@
+--=============== МОДУЛЬ 3. ОСНОВЫ SQL =======================================
+--= ПОМНИТЕ, ЧТО НЕОБХОДИМО УСТАНОВИТЬ ВЕРНОЕ СОЕДИНЕНИЕ И ВЫБРАТЬ СХЕМУ PUBLIC===========
+SET search_path TO public;
+
+--======== ОСНОВНАЯ ЧАСТЬ ==============
+
+--ЗАДАНИЕ №1
+--Выведите для каждого покупателя его адрес проживания, 
+--город и страну проживания.
+
+select t.customer_id, t.first_name, t4.country, t2.city from customer t 
+join address t1 on t.address_id = t1.address_id
+join city t2 on t1.city_id = t2.city_id
+join country t4 on t2.city_id = t4.country_id;
+
+
+--ЗАДАНИЕ №2
+--С помощью SQL-запроса посчитайте для каждого магазина количество его покупателей.
+
+select t.store_id, count(t.customer_id) from customer t
+group by t.store_id;
+
+
+
+
+--Доработайте запрос и выведите только те магазины, 
+--у которых количество покупателей больше 300-от.
+--Для решения используйте фильтрацию по сгруппированным строкам 
+--с использованием функции агрегации.
+
+select t.store_id, count(customer_id) from customer t
+group by t.store_id
+having count(customer_id) > '300';
+
+
+
+
+-- Доработайте запрос, добавив в него информацию о городе магазина, 
+--а также фамилию и имя продавца, который работает в этом магазине.
+
+select t.store_id, count(t.customer_id), t3.city, t4.last_name from customer t
+join store t1 on t.store_id = t1.store_id
+join address t2 on t1.address_id = t2.address_id
+join city t3 on t2.city_id = t3.city_id
+join staff t4 on t1.store_id = t4.store_id
+group by t.store_id, t3.city, t4.last_name
+having count(t.customer_id) > '300';
+
+
+
+--ЗАДАНИЕ №3
+--Выведите ТОП-5 покупателей, 
+--которые взяли в аренду за всё время наибольшее количество фильмов
+
+select concat(t.first_name, ' ', t.last_name) as Name, count(t1.rental_id) as Quantity  from customer t
+join rental t1 on t.customer_id = t1.customer_id
+group by t.first_name, t.last_name
+order by count(t1.rental_id) desc
+limit 5;
+
+
+--ЗАДАНИЕ №4
+--Посчитайте для каждого покупателя 4 аналитических показателя:
+--  1. количество фильмов, которые он взял в аренду
+--  2. общую стоимость платежей за аренду всех фильмов (значение округлите до целого числа)
+--  3. минимальное значение платежа за аренду фильма
+--  4. максимальное значение платежа за аренду фильма
+
+select distinct(concat(t.first_name, ' ', t.last_name)) as Name, count(t1.rental_id) as Quantity, sum(round(t2.amount)) as Sum_Payment, min(t2.amount) as Min_Payment, max(t2.amount) as Max_Payment  from customer t
+join rental t1 on t.customer_id = t1.customer_id
+join payment t2 on t1.rental_id = t2.rental_id
+group by t.first_name, t.last_name
+order by count(t1.rental_id);
+
+
+--ЗАДАНИЕ №5
+--Используя данные из таблицы городов, составьте все возможные пары городов так, чтобы 
+--в результате не было пар с одинаковыми названиями городов. Решение должно быть через Декартово произведение.
+ 
+
+select c.city, c1.city
+from city c
+cross join city c1
+where c.city != c1.city;
+
+
+--ЗАДАНИЕ №6
+--Используя данные из таблицы rental о дате выдачи фильма в аренду (поле rental_date) и 
+--дате возврата (поле return_date), вычислите для каждого покупателя среднее количество 
+--дней, за которые он возвращает фильмы. В результате должны быть дробные значения, а не интервал.
+ 
+select customer_id, round(avg(date_part('day', return_date - rental_date::date))::numeric, 2) as Average   from rental
+group by customer_id;
+
+
+
+
+--======== ДОПОЛНИТЕЛЬНАЯ ЧАСТЬ ==============
+
+--ЗАДАНИЕ №1
+--Посчитайте для каждого фильма сколько раз его брали в аренду и значение общей стоимости аренды фильма за всё время.
+
+select distinct(t3.film_id), t4.title as NameFilm, sum(round(t2.amount)) as Sum_Payment, count(return_date - t.rental_date)  from rental t
+join payment t2 on t.rental_id = t2.rental_id
+join inventory t3 on t.inventory_id = t3.inventory_id
+join film t4 on t3.film_id = t4.film_id
+group by t3.film_id, t4.title
+order by count(return_date - t.rental_date);
+
+
+
+select * from rental
+
+
+
+--ЗАДАНИЕ №2
+--Доработайте запрос из предыдущего задания и выведите с помощью него фильмы, которые отсутствуют на dvd дисках.
+
+
+
+
+
+--ЗАДАНИЕ №3
+--Посчитайте количество продаж, выполненных каждым продавцом. Добавьте вычисляемую колонку "Премия".
+--Если количество продаж превышает 7300, то значение в колонке будет "Да", иначе должно быть значение "Нет".
