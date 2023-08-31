@@ -11,7 +11,7 @@ SET search_path TO public;
 select t.customer_id, t.first_name, t4.country, t2.city from customer t 
 join address t1 on t.address_id = t1.address_id
 join city t2 on t1.city_id = t2.city_id
-join country t4 on t2.city_id = t4.country_id;
+join country t4 on t2.country_id = t4.country_id;
 
 
 --ЗАДАНИЕ №2
