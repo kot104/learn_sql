@@ -34,6 +34,7 @@ having count(customer_id) > '300';
 -- Доработайте запрос, добавив в него информацию о городе магазина, 
 --а также фамилию и имя продавца, который работает в этом магазине.
 
+--важная оговорка, в group by можно ставить только уникальные значения, t.store_id для этого идеально подходит, если мы берем групировку по t3.city(название города), то получается, что мы получаем данные по всем городам сразу.
 select t.store_id, count(t.customer_id), t3.city_id, t3.city, t4.staff_id, concat(t4.first_name, ' ', t4.last_name) as Name  from customer t
 join store t1 on t.store_id = t1.store_id
 join address t2 on t1.address_id = t2.address_id
