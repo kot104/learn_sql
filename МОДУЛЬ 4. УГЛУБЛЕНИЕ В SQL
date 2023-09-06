@@ -23,45 +23,46 @@ SET search_path TO public;
  
 --СОЗДАНИЕ ТАБЛИЦЫ ЯЗЫКИ
 
-CREATE TABLE language (
-language_id serial PRIMARY KEY
-reduction VARCHAR (50) UNIQUE NOT NULL
+CREATE TABLE modul_4.language (
+language_id serial PRIMARY key,
+reduction VARCHAR (50) UNIQUE NOT null,
 title VARCHAR (50) NOT NULL
 );
 --ВНЕСЕНИЕ ДАННЫХ В ТАБЛИЦУ ЯЗЫКИ
 
 INSERT INTO language ( language_id, reduction, title)
 VALUES 
-(1, 'eng', 'English')
-(2, 'ru', 'Russian')
-(3, 'fra', 'French')
-(4, 'gle', 'Irish')
-(5, 'hye', 'Armenian')
+(1, 'eng', 'English'),
+(2, 'ru', 'Russian'),
+(3, 'fra', 'French'),
+(4, 'gle', 'Irish'),
+(5, 'hye', 'Armenian');
 
 
 --СОЗДАНИЕ ТАБЛИЦЫ НАРОДНОСТИ
 
 CREATE TABLE nationality (
-nationality_id serial PRIMARY KEY
+nationality_id serial PRIMARY key,
 title VARCHAR (50) NOT NULL
 );
+
 
 --ВНЕСЕНИЕ ДАННЫХ В ТАБЛИЦУ НАРОДНОСТИ
 
 INSERT INTO nationality (nationality_id, title)
 VALUES
-(1, 'Anglo-Saxons')
-(2, 'Slavs')
-(3, 'Germans')
-(4, 'Icelanders')
-(5, 'Norwegians')
+(1, 'Anglo-Saxons'),
+(2, 'Slavs'),
+(3, 'Germans'),
+(4, 'Icelanders'),
+(5, 'Norwegians');
 
 
 --СОЗДАНИЕ ТАБЛИЦЫ СТРАНЫ
 
 CREATE TABLE country (
-country_id serial PRIMARY KEY
-title VARCHAR (50) NOT NULL
+country_id serial PRIMARY KEY,
+title VARCHAR (50) NOT NULL,
 capital VARCHAR (50) NOT NULL
 );
 
@@ -69,46 +70,48 @@ capital VARCHAR (50) NOT NULL
 
 INSERT INTO country (country_id, title, capital)
 VALUES
-(1, 'USA', 'Washington')
-(2, 'Russian', 'Moscow')
-(3, 'French', 'Saint-Denis')
-(4, 'Irish', 'Dublin')
-(5, 'Armenian', 'Yerevan')
+(1, 'USA', 'Washington'),
+(2, 'Russian', 'Moscow'),
+(3, 'French', 'Saint-Denis'),
+(4, 'Irish', 'Dublin'),
+(5, 'Armenian', 'Yerevan');
 
 --СОЗДАНИЕ ПЕРВОЙ ТАБЛИЦЫ СО СВЯЗЯМИ
 --язык-народность
-
 CREATE TABLE language_nationality (
-language_id int FOREIGN KEY
-nationality_id int FOREIGN KEY
-)
-
+language_id INT not null, 
+nationality_id int not null,
+constraint language_nat_fkey FOREIGN KEY (language_id) REFERENCES modul4."language"(language_id),
+CONSTRAINT nationality_lang_fkey FOREIGN KEY (nationality_id) REFERENCES modul4."nationality"(nationality_id)
+);
 --ВНЕСЕНИЕ ДАННЫХ В ТАБЛИЦУ СО СВЯЗЯМИ
 
 INSERT INTO language_nationality (language_id, nationality_id)
 VALUES
-(1, 1)
-(2, 2)
-(1, 3)
-(5, 3)
-(4, 5)
+(1, 1),
+(2, 2),
+(1, 3),
+(5, 3),
+(4, 5);
 
 --СОЗДАНИЕ ВТОРОЙ ТАБЛИЦЫ СО СВЯЗЯМИ
 --народность-страна
-CREATE TABLE  nationality_country (
-nationality_id int FOREIGN KEY
-country_id int FOREIGN KEY
-)
 
+CREATE TABLE  nationality_country (
+nationality_id int not null,
+country_id int not null,
+constraint nationality_country_fkey FOREIGN KEY (nationality_id) REFERENCES modul4."nationality"(nationality_id),
+CONSTRAINT country_nationality_fkey FOREIGN KEY (country_id ) REFERENCES modul4."country"(country_id)
+)
 --ВНЕСЕНИЕ ДАННЫХ В ТАБЛИЦУ СО СВЯЗЯМИ
 
 INSERT INTO nationality_country (nationality_id, country_id)
 VALUES
-(1, 1)
-(2, 2)
-(1, 3)
-(4, 4)
-(1, 5)
+(1, 1),
+(2, 2),
+(1, 3),
+(4, 4),
+(1, 5);
 
 --======== ДОПОЛНИТЕЛЬНАЯ ЧАСТЬ ==============
 
@@ -126,7 +129,7 @@ film_name varchar(255) NOT NULL
 film_year INTEGER CHECK(film_year > 0)
 film_rental_rate numeric(4,2) not null  DEFAULT 0.99
 film_duration integer NOT NULL CHECK(film_duration > 0)
-)
+);
 
 --ЗАДАНИЕ №2 
 --Заполните таблицу film_new данными с помощью SQL-запроса, где колонкам соответствуют массивы данных:
@@ -137,24 +140,33 @@ film_duration integer NOT NULL CHECK(film_duration > 0)
 
 INSERT INTO film_new (film_name, film_year, film_rental_rate, film_duration)
 VALUES
-('The Shawshank Redemption', 1994, 2.99, 142)
-('The Green Mile', 1999, 0.99, 189)
-('Back to the Future', 1985, 1.99, 116)
-('Forrest Gump', 1994, 2.99, 142)
-('Schindlers List', 1993, 3.99,  195)
+('The Shawshank Redemption', 1994, 2.99, 142),
+('The Green Mile', 1999, 0.99, 189),
+('Back to the Future', 1985, 1.99, 116),
+('Forrest Gump', 1994, 2.99, 142),
+('Schindlers List', 1993, 3.99,  195);
 
 --ЗАДАНИЕ №3
 --Обновите стоимость аренды фильмов в таблице film_new с учетом информации, 
 --что стоимость аренды всех фильмов поднялась на 1.41
 
 UPDATE film_new
-set film_rental_rate = film_rental_rate * 10
+set film_rental_rate = film_rental_rate * 1.41;
+
+-- проверка
+select film_rental_rate from film_new
+
+--4.22
+--1.40
+--2.81
+--4.22
+--5.63
 
 --ЗАДАНИЕ №4
 --Фильм с названием "Back to the Future" был снят с аренды, 
 --удалите строку с этим фильмом из таблицы film_new
 DELETE from film_new 
-where film_name = 'Back to the Future'
+where film_name = 'Back to the Future';
 
 
 
@@ -169,9 +181,9 @@ VALUES
 --Напишите SQL-запрос, который выведет все колонки из таблицы film_new, 
 --а также новую вычисляемую колонку "длительность фильма в часах", округлённую до десятых
 
-SELECT ROUND(film_duration \60.0, 1) as film_duration_hour, * 
-from film_new
+SELECT ROUND((film_duration / 60.0), 1) as film_duration_hour, * 
+from film_new;
 
 --ЗАДАНИЕ №7 
 --Удалите таблицу film_new
-DROP TABLE film_new
+DROP TABLE film_new;
