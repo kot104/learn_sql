@@ -23,67 +23,69 @@ SET search_path TO public;
  
 --СОЗДАНИЕ ТАБЛИЦЫ ЯЗЫКИ
 
-CREATE TABLE modul_4.language (
+CREATE TABLE language (
 language_id serial PRIMARY key,
 reduction VARCHAR (50) UNIQUE NOT null,
-title VARCHAR (50) NOT NULL
+title VARCHAR (50) UNIQUE NOT NULL
 );
 --ВНЕСЕНИЕ ДАННЫХ В ТАБЛИЦУ ЯЗЫКИ
 
 INSERT INTO language ( language_id, reduction, title)
 VALUES 
-(1, 'eng', 'English'),
-(2, 'ru', 'Russian'),
-(3, 'fra', 'French'),
-(4, 'gle', 'Irish'),
-(5, 'hye', 'Armenian');
+('eng', 'English'),
+('ru', 'Russian'),
+('fra', 'French'),
+('gle', 'Irish'),
+('hye', 'Armenian');
 
 
 --СОЗДАНИЕ ТАБЛИЦЫ НАРОДНОСТИ
 
 CREATE TABLE nationality (
 nationality_id serial PRIMARY key,
-title VARCHAR (50) NOT NULL
+title VARCHAR (50) UNIQUE NOT NULL
 );
 
 
 --ВНЕСЕНИЕ ДАННЫХ В ТАБЛИЦУ НАРОДНОСТИ
 
-INSERT INTO nationality (nationality_id, title)
+INSERT INTO nationality (title)
 VALUES
-(1, 'Anglo-Saxons'),
-(2, 'Slavs'),
-(3, 'Germans'),
-(4, 'Icelanders'),
-(5, 'Norwegians');
+('Anglo-Saxons'),
+('Slavs'),
+('Germans'),
+('Icelanders'),
+('Norwegians');
 
 
 --СОЗДАНИЕ ТАБЛИЦЫ СТРАНЫ
 
 CREATE TABLE country (
 country_id serial PRIMARY KEY,
-title VARCHAR (50) NOT NULL,
-capital VARCHAR (50) NOT NULL
+title VARCHAR (50) UNIQUE NOT NULL,
+capital VARCHAR (50) UNIQUE NOT NULL
 );
 
 --ВНЕСЕНИЕ ДАННЫХ В ТАБЛИЦУ СТРАНЫ
 
-INSERT INTO country (country_id, title, capital)
+INSERT INTO country (title, capital)
 VALUES
-(1, 'USA', 'Washington'),
-(2, 'Russian', 'Moscow'),
-(3, 'French', 'Saint-Denis'),
-(4, 'Irish', 'Dublin'),
-(5, 'Armenian', 'Yerevan');
+('USA', 'Washington'),
+('Russian', 'Moscow'),
+('French', 'Saint-Denis'),
+('Irish', 'Dublin'),
+('Armenian', 'Yerevan');
 
 --СОЗДАНИЕ ПЕРВОЙ ТАБЛИЦЫ СО СВЯЗЯМИ
 --язык-народность
 CREATE TABLE language_nationality (
 language_id INT not null, 
 nationality_id int not null,
-constraint language_nat_fkey FOREIGN KEY (language_id) REFERENCES modul4."language"(language_id),
-CONSTRAINT nationality_lang_fkey FOREIGN KEY (nationality_id) REFERENCES modul4."nationality"(nationality_id)
+CONSTRAINT language_nationality_fk FOREIGN KEY (language_id) REFERENCES modul4."language"(language_id),
+CONSTRAINT language_nationality_fk_1 FOREIGN KEY (nationality_id) REFERENCES modul4.nationality(nationality_id),
+CONSTRAINT language_nationality_pk PRIMARY KEY (language_id,nationality_id);
 );
+
 --ВНЕСЕНИЕ ДАННЫХ В ТАБЛИЦУ СО СВЯЗЯМИ
 
 INSERT INTO language_nationality (language_id, nationality_id)
@@ -100,9 +102,10 @@ VALUES
 CREATE TABLE  nationality_country (
 nationality_id int not null,
 country_id int not null,
-constraint nationality_country_fkey FOREIGN KEY (nationality_id) REFERENCES modul4."nationality"(nationality_id),
-CONSTRAINT country_nationality_fkey FOREIGN KEY (country_id ) REFERENCES modul4."country"(country_id)
-)
+CONSTRAINT nationality_country_fk FOREIGN KEY (nationality_id) REFERENCES modul4."nationality"(nationality_id),
+CONSTRAINT nationality_country_fk_1 FOREIGN KEY (country_id) REFERENCES modul4.country(country_id),
+CONSTRAINT nationality_country_pk PRIMARY KEY (country_id,nationality_id)
+);
 --ВНЕСЕНИЕ ДАННЫХ В ТАБЛИЦУ СО СВЯЗЯМИ
 
 INSERT INTO nationality_country (nationality_id, country_id)
@@ -125,9 +128,9 @@ VALUES
 --Если работаете в облачной базе, то перед названием таблицы задайте наименование вашей схемы.
 
 CREATE TABLE film_new (
-film_name varchar(255) NOT NULL
-film_year INTEGER CHECK(film_year > 0)
-film_rental_rate numeric(4,2) not null  DEFAULT 0.99
+film_name varchar(255) NOT NULL,
+film_year INTEGER CHECK(film_year > 0),
+film_rental_rate numeric(4,2) not null  DEFAULT 0.99,
 film_duration integer NOT NULL CHECK(film_duration > 0)
 );
 
@@ -139,12 +142,11 @@ film_duration integer NOT NULL CHECK(film_duration > 0)
 --·   	  film_duration - array[142, 189, 116, 142, 195]
 
 INSERT INTO film_new (film_name, film_year, film_rental_rate, film_duration)
-VALUES
-('The Shawshank Redemption', 1994, 2.99, 142),
-('The Green Mile', 1999, 0.99, 189),
-('Back to the Future', 1985, 1.99, 116),
-('Forrest Gump', 1994, 2.99, 142),
-('Schindlers List', 1993, 3.99,  195);
+select 
+unnest (array['The Shawshank Redemption', 'The Green Mile', 'Back to the Future', 'Forrest Gump', 'Schindlers List']),
+unnest (array[1994, 1999, 1985, 1994, 1993]),
+unnest (array[2.99, 0.99, 1.99, 2.99, 3.99]),
+unnest (array[142, 189, 116, 142, 195]);
 
 --ЗАДАНИЕ №3
 --Обновите стоимость аренды фильмов в таблице film_new с учетом информации, 
