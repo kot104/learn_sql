@@ -1,0 +1,31 @@
+------------------------===================================================================================------------------------
+-- долгое и полное написание
+CONSTRAINT nationality_country_fk_1 FOREIGN KEY (product_id) REFERENCES product(product_id),
+--краткое сокращение, одновременно создаем и поле и внешний ключ
+product_id int4 REFERENCES product(product_id)
+--еще более краткое написание
+product_id int4 REFERENCES product,
+
+
+CREATE table product (
+product_id int4 PRIMARY KEY,
+name VARCHAR(50) not NULL
+);
+
+
+CREATE table orders (
+order_id int PRIMARY KEY not NULL,
+product_id int4 REFERENCES product(product_id),
+order_name VARCHAR(30)
+);
+
+-- составной первичный ключ 
+PRIMARY KEY (product_id, order_id))
+
+CREATE TABLE order_items (
+    product_id integer REFERENCES product,
+    order_id integer REFERENCES orders,
+    quantity integer,
+    PRIMARY KEY (product_id, order_id));
+
+------------------------===================================================================================------------------------
