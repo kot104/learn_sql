@@ -29,3 +29,19 @@ CREATE TABLE order_items (
     PRIMARY KEY (product_id, order_id));
 
 ------------------------===================================================================================------------------------
+--uuid и тип данных  inet
+
+--включаем расширение
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+--присваиваем uuid для id записи id_launch uuid default gen_random_uuid() primary key,
+create table launch (
+id_launch uuid default gen_random_uuid() primary key,
+launch_name varchar(30),
+launch_ip4 inet 
+);
+
+select * from launch;
+
+insert into launch (launch_name, launch_ip4)
+values
+('edvord', '172.16.55.2/28');
