@@ -1,1 +1,59 @@
+--Задание №1 - 10
+--Выведите названия самолётов, которые имеют менее 50 посадочных мест.
 
+select a.aircraft_code, a.model, count(s.seat_no) as quantity_of_seats
+from aircrafts a
+join seats s on a.aircraft_code = s.aircraft_code
+group by a.aircraft_code
+having count(s.seat_no) < 50;
+
+--Задание №2 - 25
+--Выведите процентное изменение ежемесячной суммы бронирования билетов, округленной до сотых.
+
+--3 месяца
+select date_trunc('month', book_date), sum(total_amount)
+	from bookings
+group by date_trunc('month', book_date)
+order by date_trunc('month', book_date);
+
+
+select date_trunc('month', book_date), sum(total_amount), 
+round(((sum(total_amount) - lag(sum(total_amount), 1, 0.) over (order by date_trunc('month', book_date))) / lag(sum(total_amount), 1) over (order by date_trunc('month', book_date)))*100, 2)
+	from bookings
+group by date_trunc('month', book_date)
+order by date_trunc('month', book_date);	
+
+--Задание №3 - 15
+--Выведите названия самолётов без бизнес-класса. Используйте в решении функцию array_agg.
+--идем от обратного мы говорим, дай нам самолеты где есть бизнес и если там нет бизнеса ставиться null, в having мы говорим дай нам названия самолетов где null
+select a.model, array_agg (s.fare_conditions) filter (where s.fare_conditions ='Business') as fare_conditions
+from aircrafts a 
+join seats s on s.aircraft_code = a.aircraft_code
+group by a.aircraft_code
+having array_agg (s.fare_conditions) filter (where s.fare_conditions ='Business') is null
+
+
+--Задание №7 - 20
+/* Классифицируйте финансовые обороты (сумму стоимости перелетов) по маршрутам:
+до 50 млн – low
+от 50 млн включительно до 150 млн – middle
+от 150 млн включительно – high
+Выведите в результат количество маршрутов в каждом полученном классе.*/
+
+	
+select p2.amount, count(p2.amount)
+from (
+select case
+			when p1.sum < 50000000 then 'low'
+			when p1.sum between 50000000 and 150000000 then 'middle'
+			else 'high'
+			end amount
+		from(
+-- запрос стоимость перелета	
+select f.departure_airport, f.arrival_airport, sum(tf.amount)
+	from ticket_flights tf
+join flights f on f.flight_id = tf.flight_id
+group by f.departure_airport, f.arrival_airport
+order by f.departure_airport) p1
+where p1.sum is not null) p2
+group by p2.amount;
