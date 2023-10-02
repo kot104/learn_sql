@@ -32,6 +32,15 @@ join seats s on s.aircraft_code = a.aircraft_code
 group by a.aircraft_code
 having array_agg (s.fare_conditions) filter (where s.fare_conditions ='Business') is null
 
+--Задание №5 -20
+--Найдите процентное соотношение перелётов по маршрутам от общего количества перелётов. Выведите в результат названия аэропортов и процентное отношение.
+
+	
+select f.arrival_airport, f.departure_airport, round((count(*)/sum(count(*)) over ())*100,3) as "%"
+from flights f
+	join airports a on f.departure_airport = a.airport_code
+	group by f.departure_airport, f.arrival_airport, a.airport_code
+	order by arrival_airport
 
 --Задание №7 - 20
 /* Классифицируйте финансовые обороты (сумму стоимости перелетов) по маршрутам:
@@ -57,3 +66,25 @@ group by f.departure_airport, f.arrival_airport
 order by f.departure_airport) p1
 where p1.sum is not null) p2
 group by p2.amount;
+
+--Задание №8 - 20
+--Вычислите медиану стоимости перелетов, медиану стоимости бронирования и отношение медианы бронирования к медиане стоимости перелетов, результат округлите до сотых. 
+
+
+select "медиана стоимости перелетов", "медиана стоимости бронирования", round(("медиана стоимости перелетов"/"медиана стоимости бронирования")::numeric,2)
+	from (
+select percentile_cont(0.5) within group (order by tf.amount) as  "медиана стоимости перелетов",
+percentile_cont(0.5) within group (order by b.total_amount) as  "медиана стоимости бронирования"
+	from ticket_flights tf
+join tickets t on t.ticket_no = tf.ticket_no
+join bookings b on t.book_ref = b.book_ref) p1
+
+
+--а почему так? 
+explain analyse -- cost=16251.02..16251.03 actual time=145.528..160.611
+select sum(tf.amount)/count(amount) as  "медиана стоимости перелетов"
+	from ticket_flights tf
+
+explain analyse --cost=24400.89..24400.90 ctual time=763.181..763.183
+select percentile_cont(0.5) within group (order by tf.amount) as  "медиана стоимости перелетов"
+	from ticket_flights tf
