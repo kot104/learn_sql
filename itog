@@ -1,4 +1,4 @@
---Задание №1 - 10
+--Задание №1 - 10 
 --Выведите названия самолётов, которые имеют менее 50 посадочных мест.
 
 select a.aircraft_code, a.model, count(s.seat_no) as quantity_of_seats
@@ -6,6 +6,7 @@ from aircrafts a
 join seats s on a.aircraft_code = s.aircraft_code
 group by a.aircraft_code
 having count(s.seat_no) < 50;
+
 
 --Задание №2 - 25
 --Выведите процентное изменение ежемесячной суммы бронирования билетов, округленной до сотых.
@@ -16,49 +17,63 @@ select date_trunc('month', book_date), sum(total_amount)
 group by date_trunc('month', book_date)
 order by date_trunc('month', book_date);
 
-
 select date_trunc('month', book_date), sum(total_amount), 
 round(((sum(total_amount) - lag(sum(total_amount), 1, 0.) over (order by date_trunc('month', book_date))) / lag(sum(total_amount), 1) over (order by date_trunc('month', book_date)))*100, 2)
 	from bookings
 group by date_trunc('month', book_date)
-order by date_trunc('month', book_date);	
+order by date_trunc('month', book_date);
+
 
 --Задание №3 - 15
 --Выведите названия самолётов без бизнес-класса. Используйте в решении функцию array_agg.
 --идем от обратного мы говорим, дай нам самолеты где есть бизнес и если там нет бизнеса ставиться null, в having мы говорим дай нам названия самолетов где null
-select a.model, array_agg (s.fare_conditions) filter (where s.fare_conditions ='Business') as fare_conditions
-from aircrafts a 
+--https://www.postgresql.org/docs/current/arrays.html
+select p1.model
+	from (
+select a.model, array_agg(s.fare_conditions) as fare_conditions
+	from aircrafts a
 join seats s on s.aircraft_code = a.aircraft_code
-group by a.aircraft_code
-having array_agg (s.fare_conditions) filter (where s.fare_conditions ='Business') is null
+group by a.aircraft_code) p1
+where array_position(p1.fare_conditions, 'Business') is null;
+
+
 
 --Задание №5 -20
 --Найдите процентное соотношение перелётов по маршрутам от общего количества перелётов. Выведите в результат названия аэропортов и процентное отношение.
+select p1.departure_airport, p1.arrival_airport, round((p1.count/p1.sum)*100,3) as "%"
+	from (
+select concat(f.departure_airport, ' ', a.airport_name) as departure_airport, concat(f.arrival_airport, ' ', a1.airport_name) as arrival_airport,
+count(f.flight_id), sum(count(*)) over()
+	from flights f
+join airports a on a.airport_code = f.departure_airport
+join airports a1 on a1.airport_code = f.arrival_airport
+group by f.departure_airport, f.arrival_airport, a.airport_name, a1.airport_name)p1;
 
-	
-select f.arrival_airport, f.departure_airport, round((count(*)/sum(count(*)) over ())*100,3) as "%"
-from flights f
-	join airports a on f.departure_airport = a.airport_code
-	group by f.departure_airport, f.arrival_airport, a.airport_code
-	order by arrival_airport
 
---Задание №7 - 20
+--Задание №6 -15
+--Выведите количество пассажиров по каждому коду сотового оператора. Код оператора – это три символа после +7
+
+select SUBSTRING(contact_data::text from 14 for 3) as code, count(distinct passenger_id) as quantity
+from tickets
+where contact_data::text like '{"phone%'
+group by 1;
+
+--Задание №7 - 20 - готово
 /* Классифицируйте финансовые обороты (сумму стоимости перелетов) по маршрутам:
 до 50 млн – low
 от 50 млн включительно до 150 млн – middle
 от 150 млн включительно – high
 Выведите в результат количество маршрутов в каждом полученном классе.*/
 
-	
+-- в проверку этот вариант
 select p2.amount, count(p2.amount)
 from (
 select case
 			when p1.sum < 50000000 then 'low'
-			when p1.sum between 50000000 and 150000000 then 'middle'
-			else 'high'
+			when p1.sum >= 50000000 and p1.sum < 150000000 then 'middle'
+			when p1.sum >= 150000000 then 'high'
 			end amount
-		from(
--- запрос стоимость перелета	
+		from(	
 select f.departure_airport, f.arrival_airport, sum(tf.amount)
 	from ticket_flights tf
 join flights f on f.flight_id = tf.flight_id
@@ -67,24 +82,43 @@ order by f.departure_airport) p1
 where p1.sum is not null) p2
 group by p2.amount;
 
+
 --Задание №8 - 20
 --Вычислите медиану стоимости перелетов, медиану стоимости бронирования и отношение медианы бронирования к медиане стоимости перелетов, результат округлите до сотых. 
+with cte_1 as (
+select percentile_cont(0.5) within group (order by b.total_amount) as  "медиана_стоимости_бронирования"
+	from bookings b
+),
+cte_2 as(
+select percentile_cont(0.5) within group (order by tf.amount) as  "медиана_стоимости_перелетов"
+	from ticket_flights tf)
+select 	"медиана_стоимости_бронирования", "медиана_стоимости_перелетов", round(("медиана_стоимости_бронирования"/"медиана_стоимости_перелетов")::numeric,2)
+from cte_1, cte_2
 
 
-select "медиана стоимости перелетов", "медиана стоимости бронирования", round(("медиана стоимости перелетов"/"медиана стоимости бронирования")::numeric,2)
+/*Задание № 9 - 35
+ * Найдите значение минимальной стоимости одного километра полёта для пассажира.
+ *  Для этого определите расстояние между аэропортами и учтите стоимость перелета.
+Для поиска расстояния между двумя точками на поверхности Земли используйте дополнительный модуль earthdistance.
+Для работы данного модуля нужно установить ещё один модуль – cube.*/
+
+--на сдачу
+create extension earthdistance;
+create extension cube;
+
+
+select p2.departure_airport, p2.arrival_airport,
+round((p2.min/p2.distance),2) as "минимальная стоимость 1 километра",
+min(round((p2.min/p2.distance),2)) over () as "наименьшая"
 	from (
-select percentile_cont(0.5) within group (order by tf.amount) as  "медиана стоимости перелетов",
-percentile_cont(0.5) within group (order by b.total_amount) as  "медиана стоимости бронирования"
-	from ticket_flights tf
-join tickets t on t.ticket_no = tf.ticket_no
-join bookings b on t.book_ref = b.book_ref) p1
-
-
---а почему так? 
-explain analyse -- cost=16251.02..16251.03 actual time=145.528..160.611
-select sum(tf.amount)/count(amount) as  "медиана стоимости перелетов"
-	from ticket_flights tf
-
-explain analyse --cost=24400.89..24400.90 ctual time=763.181..763.183
-select percentile_cont(0.5) within group (order by tf.amount) as  "медиана стоимости перелетов"
-	from ticket_flights tf
+-- нашли расстояние в км
+	select (earth_distance(ll_to_earth(p1.lat, p1.long), ll_to_earth(a.latitude, a.longitude))::int)/1000 as distance, 
+	p1.min, p1.departure_airport, p1.arrival_airport
+		from (
+		--выводим долготу, широту, аэропорты и стоимость 1 перелета
+		select f.departure_airport, f.arrival_airport, min(tf.amount), a.latitude as lat, a.longitude as long 
+			from flights f
+		join ticket_flights tf  on f.flight_id = tf.flight_id
+		join airports a on f.departure_airport = a.airport_code
+		group by f.flight_id, tf.flight_id, a.airport_code)p1
+	join airports a on p1.arrival_airport = a.airport_code)p2
