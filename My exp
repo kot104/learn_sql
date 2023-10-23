@@ -1,8 +1,8 @@
-mysql> СОЗДАТЬ ПОЛЬЗОВАТЕЛЯ 'ohdear_ci'@'localhost', ИДЕНТИФИЦИРОВАННОГО ПО 'ohdear_secret'; 
-Запрос в порядке, затронуто 0 строк (0,11 секунды) 
+mysql> CREATE USER 'ohdear_ci'@'localhost' IDENTIFIED BY 'ohdear_secret';
+Query OK, 0 rows affected (0.11 sec)
 
-mysql> GRANT ALL ON ohdear_ci.* TO 'ohdear_ci'@'localhost'; 
-Запрос в порядке, затронуто 0 строк (0,15 сек.)
+mysql> GRANT ALL ON ohdear_ci.* TO 'ohdear_ci'@'localhost';
+Query OK, 0 rows affected (0.15 sec)
 
 ------------------------===================================================================================------------------------
 -- долгое и полное написание
