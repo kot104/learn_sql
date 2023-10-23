@@ -1,3 +1,9 @@
+mysql> СОЗДАТЬ ПОЛЬЗОВАТЕЛЯ 'ohdear_ci'@'localhost', ИДЕНТИФИЦИРОВАННОГО ПО 'ohdear_secret'; 
+Запрос в порядке, затронуто 0 строк (0,11 секунды) 
+
+mysql> GRANT ALL ON ohdear_ci.* TO 'ohdear_ci'@'localhost'; 
+Запрос в порядке, затронуто 0 строк (0,15 сек.)
+
 ------------------------===================================================================================------------------------
 -- долгое и полное написание
 CONSTRAINT nationality_country_fk_1 FOREIGN KEY (product_id) REFERENCES product(product_id),
