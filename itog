@@ -26,7 +26,6 @@ order by date_trunc('month', book_date);
 
 --Задание №3 - 15
 --Выведите названия самолётов без бизнес-класса. Используйте в решении функцию array_agg.
---идем от обратного мы говорим, дай нам самолеты где есть бизнес и если там нет бизнеса ставиться null, в having мы говорим дай нам названия самолетов где null
 --https://www.postgresql.org/docs/current/arrays.html
 select p1.model
 	from (
